@@ -85,6 +85,29 @@ Sequential read (`iter().sum()`) and write (`iter_mut().for_each()`) loops with 
 
 The process is pinned to core 0 via `core_affinity` to reduce scheduling noise.
 
+### Why not C++?
+
+Performance is identical: Both compile to the same quality machine code. The hot loops (pointer chasing, sequential sum) are
+trivial enough that LLVM produces equivalent output for both languages. The unsafe get_unchecked in Rust gives us the same codegen
+as raw pointer/array access in C++.
+
+Where C++ could arguably help:
+- Inline assembly: Easier to use asm volatile with memory fences or specific prefetch instructions if you wanted cycle-level
+precision. Rust has core::arch::asm! but it's less ergonomic.
+- Intrinsics: More straightforward access to SIMD/cache control intrinsics (_mm_clflush, _mm_prefetch) if you wanted to add
+cache-line flushing or non-temporal stores.
+- Existing ecosystem: Tools like lmbench and tinymembench are C/C++, so there's more prior art to reference.
+
+Where Rust is better for this project:
+- cargo makes dependency management trivial (clap, tabled, core_affinity) — no CMake/vcpkg headaches
+- Safe defaults with surgical unsafe only where needed (the one get_unchecked call)
+- black_box is stable and purpose-built for benchmarking; C++ equivalent (benchmark::DoNotOptimize) requires Google Benchmark as a
+dependency
+
+Bottom line: The hot loops are 3-5 lines of code where both languages produce identical machine code. Everything else (CLI
+parsing, table formatting, shuffling) is non-critical code where Rust's tooling is more convenient. Switching to C++ would add
+build complexity for zero performance gain.
+
 ## License
 
 This project is licensed under the GNU General Public License v3.0. See [LICENSE](LICENSE) for details.
