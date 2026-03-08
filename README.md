@@ -40,7 +40,7 @@ Results clearly show step changes at cache boundaries, making it easy to identif
 ## Installation
 
 ```bash
-git clone https://github.com/your-user/mem_benchmark.git
+git clone https://github.com/mfdutra/mem_benchmark.git
 cd mem_benchmark
 cargo build --release
 ```
